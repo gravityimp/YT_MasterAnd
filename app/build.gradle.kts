@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.masterand"
-    compileSdk = 33
+    namespace = "com.example.yt_masterand"
+    compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.masterand"
+        applicationId = "com.example.yt_masterand"
         minSdk = 34
         targetSdk = 33
         versionCode = 1

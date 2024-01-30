@@ -1,6 +1,8 @@
 package com.example.yt_masterand.nav
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -16,20 +18,20 @@ import com.example.yt_masterand.screen.ProfileScreenInitial
 fun SetupNavGraph(navController: NavHostController){
     NavHost(
         navController = navController,
-        startDestination = "login_screen" ){
+        startDestination = Screen.Login.route ){
 
         composable(
             route = Screen.Login.route,
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(700)
+                    animationSpec = tween(700, easing = EaseIn)
                 )
             },
             exitTransition = {
                 slideOutOfContainer(
                     AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(700)
+                    animationSpec = tween(700, easing = EaseOut)
                 )
             }
         ){
@@ -37,8 +39,9 @@ fun SetupNavGraph(navController: NavHostController){
         }
 
         composable(
-            route = Screen.Game.route,
+            route = Screen.Game.route + "/{playerId}/{colors}",
             arguments = listOf(
+                navArgument("playerId") { type = NavType.LongType},
                 navArgument("colors"){
                     type = NavType.IntType
                     defaultValue = 5
@@ -57,11 +60,18 @@ fun SetupNavGraph(navController: NavHostController){
                 )
             }
         ){ entry ->
-            GameScreenInitial(navController = navController, colors = entry.arguments?.getInt("colors") ?: 5)
+            GameScreenInitial(
+                navController = navController,
+                playerId = entry.arguments?.getLong("playerId")!!,
+                colors = entry.arguments?.getInt("colors") ?: 5
+            )
         }
 
         composable(
-            route = Screen.Profile.route,
+            route = Screen.Profile.route + "/{profileId}",
+            arguments = listOf(
+                navArgument("playerId") { type = NavType.LongType},
+            ),
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Left,
@@ -74,8 +84,11 @@ fun SetupNavGraph(navController: NavHostController){
                     animationSpec = tween(700)
                 )
             }
-        ){
-            ProfileScreenInitial(navController = navController)
+        ){ entry ->
+            ProfileScreenInitial(
+                navController = navController,
+                playerId = entry.arguments?.getLong("playerId")!!,
+            )
         }
     }
 }

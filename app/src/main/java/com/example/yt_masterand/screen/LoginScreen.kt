@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,9 +41,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.masterand.R
+import com.example.yt_masterand.R
+import com.example.yt_masterand.nav.Screen
+import com.example.yt_masterand.view.PlayerViewModel
+import com.example.yt_masterand.view.ViewModelProvider
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,10 +132,10 @@ fun validateColorNumber(colorNumber: String): Boolean {
     return colorNumber.toIntOrNull()?.let { it in 5..10 } ?: false
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreenInitial(
-    navController: NavController
+    navController: NavController,
+    playerViewModel: PlayerViewModel = viewModel(factory = ViewModelProvider.Factory)
 ) {
     val name = rememberSaveable { mutableStateOf("") }
     val email = rememberSaveable { mutableStateOf("")}
@@ -145,6 +151,8 @@ fun LoginScreenInitial(
                 profileImageUri.value = selectedUri
             }
         })
+
+    val coroutineScope = rememberCoroutineScope()
 
     val infiniteTransition = rememberInfiniteTransition()
     val scale by infiniteTransition.animateFloat(
@@ -211,7 +219,12 @@ fun LoginScreenInitial(
                     validateEmail(email.value) &&
                     validateColorNumber(colorNumber.value)
                 ) {
-                    navController.navigate(route = "game_screen?colors=${colorNumber.value}")
+                    coroutineScope.launch {
+                        playerViewModel.updateName(name.toString())
+                        playerViewModel.updateEmail(email.toString())
+                        playerViewModel.savePlayer()
+                        navController.navigate(route = Screen.Game.route + "/${playerViewModel.playerId}/${colorNumber.value}")
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth()

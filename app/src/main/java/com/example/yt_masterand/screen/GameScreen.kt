@@ -219,6 +219,7 @@ fun checkColors(
 @Composable
 fun GameScreenInitial(
     navController: NavController,
+    playerId: Long,
     colors: Int = 6
 ) {
     var usedColors by remember { mutableStateOf(selectRandomColors(AVAILABLE_COLORS, colors)) }
