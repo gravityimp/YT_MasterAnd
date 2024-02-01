@@ -35,8 +35,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.yt_masterand.nav.Screen
+import com.example.yt_masterand.view.AppViewModelProvider
+import com.example.yt_masterand.view.ScoreViewModel
+import com.example.ytmaster.screen.ResultScreen
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import okhttp3.internal.toImmutableList
 
 @Composable
@@ -220,7 +226,8 @@ fun checkColors(
 fun GameScreenInitial(
     navController: NavController,
     playerId: Long,
-    colors: Int = 6
+    colors: Int = 5,
+    scoreViewModel: ScoreViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     var usedColors by remember { mutableStateOf(selectRandomColors(AVAILABLE_COLORS, colors)) }
     var correctAnswer by remember { mutableStateOf(selectRandomColors(usedColors, 4)) }
@@ -243,6 +250,12 @@ fun GameScreenInitial(
     var history = remember { mutableStateListOf<Pair<List<Color>, List<Color>>>() }
     var attempts by remember { mutableIntStateOf(0) }
     var isGameOver by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = scoreViewModel.playerId) {
+        scoreViewModel.playerId = playerId
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -281,49 +294,59 @@ fun GameScreenInitial(
                         selectedColors[index]
                     )
                     selectedColors[index] = nextColor
-                },
-                onCheckClick = {
-                    if (selectedColors.size == 4 && !isGameOver) {
-                        val selectedColorsList: List<Color> = selectedColors.toList()
-                        val feedbackColorsList: List<Color> =
-                            checkColors(selectedColorsList, correctAnswer)
+                }
+            ) {
+                if (selectedColors.size == 4 && !isGameOver) {
+                    val selectedColorsList: List<Color> = selectedColors.toList()
+                    val feedbackColorsList: List<Color> =
+                        checkColors(selectedColorsList, correctAnswer)
 
-                        feedbackColors.clear()
-                        feedbackColors.addAll(feedbackColorsList)
-                        attempts++
+                    feedbackColors.clear()
+                    feedbackColors.addAll(feedbackColorsList)
+                    attempts++
 
-                        if (feedbackColors.all { it == CORRECT_COLOR }) {
-                            isGameOver = true
-                        } else {
-                            history.add(
-                                Pair(
-                                    selectedColors.toImmutableList(),
-                                    feedbackColors.toImmutableList()
-                                )
-                            )
-                            selectedColors.clear()
-                            feedbackColors.clear()
-                            selectedColors.addAll(List(4) { Color.Transparent })
-                            feedbackColors.addAll(List(4) { Color.Transparent })
+                    if (feedbackColors.all { it == CORRECT_COLOR }) {
+                        isGameOver = true
+                        coroutineScope.launch {
+                            scoreViewModel.updateScore(attempts)
+                            scoreViewModel.insertScore()
                         }
+                    } else {
+                        history.add(
+                            Pair(
+                                selectedColors.toImmutableList(),
+                                feedbackColors.toImmutableList()
+                            )
+                        )
+                        selectedColors.clear()
+                        feedbackColors.clear()
+                        selectedColors.addAll(List(4) { Color.Transparent })
+                        feedbackColors.addAll(List(4) { Color.Transparent })
                     }
                 }
-            )
+            }
         }
 
         item {
             if (isGameOver) {
-                Button(onClick = {
-                    usedColors = selectRandomColors(AVAILABLE_COLORS, 6)
-                    correctAnswer = selectRandomColors(usedColors, 4)
-                    selectedColors.clear()
-                    feedbackColors.clear()
-                    selectedColors.addAll(List(4) { Color.Transparent })
-                    feedbackColors.addAll(List(4) { Color.Transparent })
-                    history.clear()
-                    attempts = 0
-                    isGameOver = false
-                }) { Text("Play Again") }
+                Row {
+                    Button(onClick = {
+                        usedColors = selectRandomColors(AVAILABLE_COLORS, 6)
+                        correctAnswer = selectRandomColors(usedColors, 4)
+                        selectedColors.clear()
+                        feedbackColors.clear()
+                        selectedColors.addAll(List(4) { Color.Transparent })
+                        feedbackColors.addAll(List(4) { Color.Transparent })
+                        history.clear()
+                        attempts = 0
+                        isGameOver = false
+                    }) { Text("Play Again") }
+                    Button(onClick = {
+                        navController.navigate(route = Screen.Results.route + "/${playerId}/${attempts}/${colors}")
+                    }) {
+                        Text("Results")
+                    }
+                }
             }
         }
 
@@ -333,7 +356,7 @@ fun GameScreenInitial(
                 modifier = Modifier.padding(top = 48.dp)
             ) {
                 Button(onClick = {
-                    navController.navigate(route = Screen.Profile.route)
+                    navController.navigate(route = Screen.Profile.route + "/${playerId.toString()}/${colors}")
                 }) { Text(text = "See your profile") }
                 Button(onClick = {
                     navController.navigate(route = Screen.Login.route)

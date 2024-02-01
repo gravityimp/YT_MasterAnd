@@ -21,7 +21,7 @@ import coil.compose.AsyncImage
 import com.example.yt_masterand.R
 import com.example.yt_masterand.nav.Screen
 import com.example.yt_masterand.view.PlayerViewModel
-import com.example.yt_masterand.view.ViewModelProvider
+import com.example.yt_masterand.view.AppViewModelProvider
 
 @Composable
 fun ProfileImage(profileImageUri: Uri?,) {
@@ -49,11 +49,6 @@ fun ProfileImage(profileImageUri: Uri?,) {
 }
 
 @Composable
-fun NumberOfColors(number: Number) {
-    Text(text = "Number of colors: $number")
-}
-
-@Composable
 fun Email(email: String) {
     Text(text = "Email: $email")
 }
@@ -72,7 +67,8 @@ fun Username(username: String) {
 fun ProfileScreenInitial(
     navController: NavController,
     playerId: Long,
-    playerViewModel: PlayerViewModel = viewModel(factory = ViewModelProvider.Factory)
+    colors: Int,
+    playerViewModel: PlayerViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     LaunchedEffect(key1 = playerViewModel.playerId) {
         playerViewModel.getPlayerById(playerId = playerId)
@@ -83,10 +79,11 @@ fun ProfileScreenInitial(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        ProfileImage(profileImageUri = null)
         Username(username = playerViewModel.name)
         Email(email = playerViewModel.email)
         Button(onClick = {
-            navController.navigate(route = Screen.Game.route)
+            navController.navigate(route = Screen.Game.route + "/${playerId}/${colors}")
         }) { Text(text = "Return to game") }
     }
 

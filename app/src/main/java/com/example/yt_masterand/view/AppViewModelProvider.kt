@@ -6,7 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.yt_masterand.MasterAndApplication
 
-object ViewModelProvider {
+object AppViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
             PlayerViewModel(masterAndApplication().container.playerRepository)
@@ -21,5 +21,4 @@ object ViewModelProvider {
 }
 
 fun CreationExtras.masterAndApplication(): MasterAndApplication = (
-        this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MasterAndApplication
-        )
+        this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as MasterAndApplication)

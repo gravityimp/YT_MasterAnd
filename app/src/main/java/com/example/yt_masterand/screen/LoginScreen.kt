@@ -47,7 +47,7 @@ import coil.compose.AsyncImage
 import com.example.yt_masterand.R
 import com.example.yt_masterand.nav.Screen
 import com.example.yt_masterand.view.PlayerViewModel
-import com.example.yt_masterand.view.ViewModelProvider
+import com.example.yt_masterand.view.AppViewModelProvider
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,7 +135,7 @@ fun validateColorNumber(colorNumber: String): Boolean {
 @Composable
 fun LoginScreenInitial(
     navController: NavController,
-    playerViewModel: PlayerViewModel = viewModel(factory = ViewModelProvider.Factory)
+    playerViewModel: PlayerViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val name = rememberSaveable { mutableStateOf("") }
     val email = rememberSaveable { mutableStateOf("")}
@@ -220,8 +220,8 @@ fun LoginScreenInitial(
                     validateColorNumber(colorNumber.value)
                 ) {
                     coroutineScope.launch {
-                        playerViewModel.updateName(name.toString())
-                        playerViewModel.updateEmail(email.toString())
+                        playerViewModel.updateName(name.value)
+                        playerViewModel.updateEmail(email.value)
                         playerViewModel.savePlayer()
                         navController.navigate(route = Screen.Game.route + "/${playerViewModel.playerId}/${colorNumber.value}")
                     }
